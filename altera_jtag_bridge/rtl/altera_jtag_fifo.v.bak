@@ -14,7 +14,7 @@ module altera_jtag_fifo (
   readdata,
   dataavailable,
   readyfordata
-)
+);
   /* synthesis ALTERA_ATTRIBUTE = "SUPPRESS_DA_RULE_INTERNAL=\"R101,C106,D101,D103\"" */ ;
 
   input         clk;
@@ -88,7 +88,7 @@ module altera_jtag_fifo (
         begin
           wfifo_wr <= 1'b0;
           // write
-          if (write) begin
+          if (write)
             wfifo_wr    <= ~wfifo_full;
             wfifo_wdata <= writedata;
           end
