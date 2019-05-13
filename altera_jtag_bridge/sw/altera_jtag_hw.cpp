@@ -1,7 +1,8 @@
 #include <stdio.h>
-#include <altera_jtag_atlantic.h>
+//#include <altera_jtag_atlantic.h>
 
 #include "altera_jtag_hw.h"
+#include "altera_jtag_atlantic.h"
 
 //-----------------------------------------------------------------
 // Defines:
@@ -13,7 +14,7 @@
 #define CMD_GP_RD      0x4
 
 #define HDR_SIZE       6
-#define MAX_TX_SIZE    2**6 - HDR_SIZE
+#define MAX_TX_SIZE    1<<6 - HDR_SIZE
 
 struct JTAGATLANTIC *jtag_link = NULL;
 
@@ -26,7 +27,7 @@ int altera_jtag_hw_init(int instance_id)
     jtag_link = jtagatlantic_open("USB-Blaster", 0, instance_id, NULL);
     if (jtag_link == NULL)
     {
-        OUT_ERROR("Unable to open altera_jtag device: %s, %x, %x.\n", m_device_name, m_device_id, m_instance_id);
+        fprintf(stderr, "Unable to open altera_jtag device: %s, %x, %x.\n", "USB-Blaster", 0, instance_id);
         return -1;
     }
 
@@ -83,7 +84,7 @@ int altera_jtag_hw_mem_write(uint32_t addr, uint8_t *data, int length)
             *p++ = *data++;
 
         // Write request + data to FTDI device
-        res = jtagatlantic_write(jtag_link, buffer, (size + HDR_SIZE));
+        res = jtagatlantic_write(jtag_link, (const char*)buffer, (size + HDR_SIZE));
         // Flush buffers
         jtagatlantic_flush(jtag_link);
         if (res != (size + HDR_SIZE))
@@ -136,7 +137,7 @@ int altera_jtag_hw_mem_read(uint32_t addr, uint8_t *data, int length)
         *p++ = (addr >> 0);
 
         // Write request to FTDI device
-        res = jtagatlantic_write(jtag_link, buffer, HDR_SIZE);
+        res = jtagatlantic_write(jtag_link, (const char*)buffer, HDR_SIZE);
         // Flush buffers
         jtagatlantic_flush(jtag_link);
         if (res != HDR_SIZE)
@@ -148,7 +149,7 @@ int altera_jtag_hw_mem_read(uint32_t addr, uint8_t *data, int length)
         remain = size;
         do
         {
-            res = jtagatlantic_read(jtag_link, data, remain);
+            res = jtagatlantic_read(jtag_link, (char*)data, remain);
             if (res < 0)
             {
                 fprintf(stderr, "altera_jtag_hw_mem_read: Failed to read data\n");
@@ -210,7 +211,7 @@ int altera_jtag_hw_gpio_write(uint8_t value)
     uint8_t buffer[2] = { CMD_GP_WR, value };
 
     // Write request to FTDI device
-    int res = jtagatlantic_write(jtag_link, buffer, sizeof(buffer));
+    int res = jtagatlantic_write(jtag_link, (const char*)buffer, sizeof(buffer));
     if (res != sizeof(buffer))
     {
         fprintf(stderr, "altera_jtag_hw_gpio_write: Failed to send\n");
@@ -231,7 +232,7 @@ int altera_jtag_hw_gpio_read(uint8_t *value)
     }
     // Write request to FTDI device
     uint8_t request = CMD_GP_RD;
-    int res = jtagatlantic_write(jtag_link, &request, 1);
+    int res = jtagatlantic_write(jtag_link, (const char*)&request, 1);
     if (res != 1)
     {
         fprintf(stderr, "altera_jtag_hw_gpio_read: Failed to send\n");
@@ -241,8 +242,7 @@ int altera_jtag_hw_gpio_read(uint8_t *value)
     // Poll for response
     do
     {
-        res = jtagatlantic_read(jtag_link, value, remain);
-        res = ftdi_read_data(_handle, value, 1);
+        res = jtagatlantic_read(jtag_link, (char*)value, 1);
         if (res < 0)
         {
             fprintf(stderr, "altera_jtag_hw_gpio_read: Failed to read data\n");
@@ -252,4 +252,43 @@ int altera_jtag_hw_gpio_read(uint8_t *value)
     while (res != 1);
 
     return 0;
+}
+
+
+//int ftdi_hw_init(int interface)
+int ftdi_hw_init(void)
+{
+    return altera_jtag_hw_init(-1);
+}
+int ftdi_hw_close(void)
+{
+    return altera_jtag_hw_close();
+}
+
+// Memory Access
+int ftdi_hw_mem_write(uint32_t addr, uint8_t *data, int length)
+{
+    return altera_jtag_hw_mem_write(addr, data, length);
+}
+int ftdi_hw_mem_read(uint32_t addr, uint8_t *data, int length)
+{
+    return altera_jtag_hw_mem_read(addr, data, length);
+}
+int ftdi_hw_mem_write_word(uint32_t addr, uint32_t data)
+{
+    return altera_jtag_hw_mem_write_word(addr, data);
+}
+int ftdi_hw_mem_read_word(uint32_t addr, uint32_t *data)
+{
+    return altera_jtag_hw_mem_read_word(addr, data);
+}
+
+// GPIO
+int ftdi_hw_gpio_write(uint8_t value)
+{
+    altera_jtag_hw_gpio_write(value);
+}
+int ftdi_hw_gpio_read(uint8_t *value)
+{
+    altera_jtag_hw_gpio_read(value);
 }

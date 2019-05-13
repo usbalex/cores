@@ -148,7 +148,7 @@ module altera_jtag_fifo (
     .rst_n (rst_n),
     .t_dat (rfifo_wdata), // (out) output data received via jtag
     .t_dav (t_dav),       // (in)  read fifo ready to accept data? (would be 'r_ena' of rfifo)
-    .t_ena (t_ena),       // (out) output data valid
+    .t_ena (t_ena)        // (out) output data valid
 //    .t_pause (t_pause)    // (out) (currently transmitting via jtag??? -> don't read or write data???)
   );
   defparam the_alt_jtag_atlantic.INSTANCE_ID = 0,

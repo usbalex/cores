@@ -9,6 +9,9 @@
  *          -> "FPGA State Machine based jtag_uart communicates over USB jtag cable"
  */
 
+#ifndef _ALTERA_JTAG_ATLANTIC_H_
+#define _ALTERA_JTAG_ATLANTIC_H_
+
 typedef struct JTAGATLANTIC JTAGATLANTIC;
 
 struct JTAGATLANTIC {};
@@ -33,10 +36,11 @@ JTAGATLANTIC * jtagatlantic_open(const char * chain, int device_index, int link_
 enum JATL_ERROR jtagatlantic_get_error(const char * * other_info);
 void jtagatlantic_close(JTAGATLANTIC * link);
 int jtagatlantic_write(JTAGATLANTIC * link, const char * data, unsigned int count);
-int jtagatlantic_flush(jtagatlantic * link);
+int jtagatlantic_flush(JTAGATLANTIC * link);
 int jtagatlantic_read(JTAGATLANTIC * link, char * buffer, unsigned int buffsize);
 
 int jtagatlantic_wait_open(JTAGATLANTIC * link);
 int jtagatlantic_cable_warning(JTAGATLANTIC * link);
 void jtagatlantic_get_info(JTAGATLANTIC * link, char const * * chain, int * device_index, int * link_instance);
 
+#endif

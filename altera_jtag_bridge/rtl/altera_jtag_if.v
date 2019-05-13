@@ -277,7 +277,9 @@ u_jtag
     .readdata(data_rx_w),
     .writedata(data_tx_w),
     .write(wr_w),
-//    .rd_i(rd_w), .readyfordata(wr_accept_w), .dataavailable(rx_ready_w)
+//    .rd_i(rd_w),
+    .readyfordata(wr_accept_w),
+    .dataavailable(rx_ready_w)
 );
 
 
