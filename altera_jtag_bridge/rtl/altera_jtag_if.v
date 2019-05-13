@@ -67,6 +67,9 @@ module altera_jtag_if
     output                      mem_cyc_o,
     input                       mem_ack_i,
     input                       mem_stall_i
+
+    ,
+    output [7:0] debug_o
 );
 
 //-----------------------------------------------------------------
@@ -280,8 +283,12 @@ u_jtag
 //    .rd_i(rd_w),
     .readyfordata(wr_accept_w),
     .dataavailable(rx_ready_w)
+
+    ,
+    .debug(debug_o)
 );
 
+//assign debug_o = {data_rx_w[2:0], data_tx_w[1:0], wr_w, wr_accept_w, rx_ready_w};
 
 //-----------------------------------------------------------------
 // RD/WR to and from async FTDI I/F

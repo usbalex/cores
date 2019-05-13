@@ -14,6 +14,9 @@ module altera_jtag_fifo (
   readdata,
   dataavailable,
   readyfordata
+
+  ,
+  debug
 )
   /* synthesis ALTERA_ATTRIBUTE = "SUPPRESS_DA_RULE_INTERNAL=\"R101,C106,D101,D103\"" */ ;
 
@@ -24,6 +27,8 @@ module altera_jtag_fifo (
   output  [7:0] readdata;
   output        dataavailable;
   output        readyfordata;
+
+  output  [7:0] debug;
 
   wire    [7:0] readdata;
   wire          dataavailable;
@@ -51,7 +56,7 @@ module altera_jtag_fifo (
   wire          t_ena;
   reg           r_val;
   reg           t_dav;
-//  wire          t_pause;
+  wire          t_pause;
 
 
   assign fifo_clear = ~rst_n;
@@ -64,6 +69,7 @@ module altera_jtag_fifo (
   assign readdata       = rfifo_rdata;
 
 
+  // from jtag chain
   always @(posedge clk or negedge rst_n)
     begin
       if (rst_n == 0)
@@ -78,11 +84,13 @@ module altera_jtag_fifo (
         end
     end
 
+  // to jtag chain
   always @(posedge clk or negedge rst_n)
     begin
       if (rst_n == 0)
         begin
           wfifo_wr <= 1'b0;
+//          wfifo_wdata <= 8'b00000001;
         end
       else 
         begin
@@ -92,10 +100,13 @@ module altera_jtag_fifo (
             wfifo_wr    <= ~wfifo_full;
             wfifo_wdata <= writedata;
           end
+//            wfifo_wr    <= wfifo_empty;
+//            wfifo_wdata <= wfifo_wdata + 8'b00000001;
         end
     end
 
 
+  // to jtag chain
   scfifo the_wfifo (
     .aclr  (fifo_clear),
     .clock (clk),
@@ -118,6 +129,7 @@ module altera_jtag_fifo (
            the_wfifo.use_eab = "ON";
   
 
+  // from jtag chain
   scfifo the_rfifo (
     .aclr  (fifo_clear),
     .clock (clk),
@@ -148,14 +160,103 @@ module altera_jtag_fifo (
     .rst_n (rst_n),
     .t_dat (rfifo_wdata), // (out) output data received via jtag
     .t_dav (t_dav),       // (in)  read fifo ready to accept data? (would be 'r_ena' of rfifo)
-    .t_ena (t_ena)        // (out) output data valid
-//    .t_pause (t_pause)    // (out) (currently transmitting via jtag??? -> don't read or write data???)
+    .t_ena (t_ena),        // (out) output data valid
+    .t_pause (t_pause)    // (out) (currently transmitting via jtag??? -> don't read or write data???)
   );
   defparam the_alt_jtag_atlantic.INSTANCE_ID = 0,
            the_alt_jtag_atlantic.LOG2_RXFIFO_DEPTH = 6,
            the_alt_jtag_atlantic.LOG2_TXFIFO_DEPTH = 6,
            the_alt_jtag_atlantic.SLD_AUTO_INSTANCE_INDEX = "YES";
 
+
+  reg w_reg;
+  reg not_full;
+  reg not_empty;
+  always @(posedge clk or negedge rst_n)
+    begin
+      if (rst_n == 0)
+        begin
+          w_reg <= 1'b0;
+          not_full <= 1'b0;
+          not_empty <= 1'b0;
+        end
+      else 
+        begin
+          if (t_ena) begin
+            w_reg <= 1'b1;
+          end
+          if (~rfifo_full) begin
+            not_full <= 1'b1;
+          end
+          if (~rfifo_empty) begin
+            not_empty <= 1'b1;
+          end
+        end
+    end
+  reg rf_ne;
+  reg rf_f;
+  reg rf_wr;
+  reg rf_rd;
+  always @(posedge clk or negedge rst_n)
+    begin
+      if (rst_n == 0)
+        begin
+          rf_ne <= 1'b0;
+          rf_f  <= 1'b0;
+          rf_wr <= 1'b0;
+          rf_rd <= 1'b0;
+        end
+      else 
+        begin
+          if (~rfifo_empty) begin
+            rf_ne <= 1'b1;
+          end
+          if (rfifo_full) begin
+            rf_f  <= 1'b1;
+          end
+          if (rfifo_wr) begin
+            rf_wr <= 1'b1;
+          end
+          if (rfifo_rd) begin
+            rf_rd <= 1'b1;
+          end
+        end
+    end
+
+  //assign debug = {w_reg, not_full, not_empty, t_pause, rfifo_wdata[0], rfifo_empty, rfifo_full, rfifo_rd};
+
+
+  reg wf_ne;
+  reg wf_f;
+  reg wf_wr;
+  reg wf_rd;
+  always @(posedge clk or negedge rst_n)
+    begin
+      if (rst_n == 0)
+        begin
+          wf_ne <= 1'b0;
+          wf_f  <= 1'b0;
+          wf_wr <= 1'b0;
+          wf_rd <= 1'b0;
+        end
+      else 
+        begin
+          if (~wfifo_empty) begin
+            wf_ne <= 1'b1;
+          end
+          if (wfifo_full) begin
+            wf_f  <= 1'b1;
+          end
+          if (wfifo_wr) begin
+            wf_wr <= 1'b1;
+          end
+          if (wfifo_rd) begin
+            wf_rd <= 1'b1;
+          end
+        end
+    end
+  //assign debug = {wfifo_empty, wfifo_full, wfifo_rd, wfifo_wr, wfifo_rdata[1:0], wfifo_wdata[1:0]};
+  assign debug = {wf_ne, wf_f, wf_wr, wf_rd, rf_ne, rf_f, rf_wr, rf_rd};
 
 endmodule
 

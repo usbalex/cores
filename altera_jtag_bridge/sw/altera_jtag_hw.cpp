@@ -217,6 +217,8 @@ int altera_jtag_hw_gpio_write(uint8_t value)
         fprintf(stderr, "altera_jtag_hw_gpio_write: Failed to send\n");
         return -1;
     }
+    // Flush buffers
+    jtagatlantic_flush(jtag_link);
 
     return 0;
 }
@@ -238,6 +240,8 @@ int altera_jtag_hw_gpio_read(uint8_t *value)
         fprintf(stderr, "altera_jtag_hw_gpio_read: Failed to send\n");
         return -1;
     }
+    // Flush buffers
+    jtagatlantic_flush(jtag_link);
 
     // Poll for response
     do
