@@ -255,11 +255,15 @@ int altera_jtag_hw_gpio_read(uint8_t *value)
 }
 
 
-//int ftdi_hw_init(int interface)
-int ftdi_hw_init(void)
+int ftdi_hw_init(int interface)
 {
+//    return altera_jtag_hw_init(interface);
     return altera_jtag_hw_init(-1);
 }
+//int ftdi_hw_init(void)
+//{
+//    return altera_jtag_hw_init(-1);
+//}
 int ftdi_hw_close(void)
 {
     return altera_jtag_hw_close();
@@ -286,9 +290,9 @@ int ftdi_hw_mem_read_word(uint32_t addr, uint32_t *data)
 // GPIO
 int ftdi_hw_gpio_write(uint8_t value)
 {
-    altera_jtag_hw_gpio_write(value);
+    return altera_jtag_hw_gpio_write(value);
 }
 int ftdi_hw_gpio_read(uint8_t *value)
 {
-    altera_jtag_hw_gpio_read(value);
+    return altera_jtag_hw_gpio_read(value);
 }

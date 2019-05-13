@@ -2,7 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "ftdi_hw.h"
+//#include "ftdi_hw.h"
+#include "altera_jtag_hw.h"
 
 //-----------------------------------------------------------------
 // Defines:
@@ -40,7 +41,6 @@ int main(int argc, char *argv[])
     if (help)
     {
         fprintf (stderr,"Usage:\n");
-        fprintf (stderr,"-v 0xNN           = Data to write\n");
         fprintf (stderr,"-i id             = FTDI interface ID (0 = A, 1 = B)\n");
         fprintf (stderr,"-q                = Quiet mode (data returned via return value)\n");
  

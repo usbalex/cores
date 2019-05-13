@@ -9,7 +9,7 @@ TARGET     ?= test
 CFLAGS      = -g
 LDFLAGS     = 
 #LIBS        = -lftdi
-LIBS        = -ljtag_atlantic
+LIBS        = -L /opt/altera/12.1/quartus/linux64 -ljtag_atlantic -ljtag_client
 
 # Source Files
 #OBJ = ftdi_hw.o $(TARGET).o
@@ -21,7 +21,7 @@ OBJ = altera_jtag_hw.o $(TARGET).o
 all: $(TARGET)
     
 clean:
-	-rm *.o $(TARGET)
+	-rm *.o *~ $(TARGET)
 
 %.o : %.c
 	gcc -c $(CFLAGS) $< -o $@

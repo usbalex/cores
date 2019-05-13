@@ -2,7 +2,8 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include "ftdi_hw.h"
+//#include "ftdi_hw.h"
+#include "altera_jtag_hw.h"
 
 //-----------------------------------------------------------------
 // Defines:

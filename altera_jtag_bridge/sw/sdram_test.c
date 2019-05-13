@@ -1,7 +1,8 @@
 #include <stdio.h>
 #include <sys/time.h> 
 
-#include "ftdi_hw.h"
+//#include "ftdi_hw.h"
+#include "altera_jtag_hw.h"
 
 //-----------------------------------------------------------------
 // Defines:

@@ -4,7 +4,15 @@
 #ifdef __cplusplus
 #include <cstdint>
 extern "C" {
+#else
+#include <stdint.h>
 #endif
+//#ifndef uint32_t
+//#define uint32_t u_int32_t
+//#endif
+//#ifndef uint8_t
+//#define uint8_t u_int8_t
+//#endif
 int altera_jtag_hw_init(int interface);
 int altera_jtag_hw_close(void);
 
@@ -19,8 +27,8 @@ int altera_jtag_hw_gpio_write(uint8_t value);
 int altera_jtag_hw_gpio_read(uint8_t *value);
 
 
-//int ftdi_hw_init(int interface);
-int ftdi_hw_init(void);
+int ftdi_hw_init(int interface);
+//int ftdi_hw_init(void);
 int ftdi_hw_close(void);
 
 // Memory Access
