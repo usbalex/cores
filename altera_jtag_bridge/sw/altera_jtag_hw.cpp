@@ -266,7 +266,6 @@ int altera_jtag_hw_gpio_read(uint8_t *value)
 int ftdi_hw_init(int interface)
 {
     return altera_jtag_hw_init(interface);
-//    return altera_jtag_hw_init(0);
 }
 //int ftdi_hw_init(void)
 //{
