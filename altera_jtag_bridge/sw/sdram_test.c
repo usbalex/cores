@@ -7,7 +7,8 @@
 //-----------------------------------------------------------------
 // Defines:
 //-----------------------------------------------------------------
-#define DEFAULT_FTDI_IFACE  1
+//#define DEFAULT_FTDI_IFACE  1
+#define DEFAULT_FTDI_IFACE  0
 #define BLOCK_SIZE  2048
 
 #define MEM_SIZE    ((32 * 1024) / 4)

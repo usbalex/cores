@@ -14,7 +14,8 @@
 #define CMD_GP_RD      0x4
 
 #define HDR_SIZE       6
-#define MAX_TX_SIZE    1<<6 - HDR_SIZE
+//#define MAX_TX_SIZE    1<<6 - HDR_SIZE
+#define MAX_TX_SIZE    2048 - HDR_SIZE
 
 struct JTAGATLANTIC *jtag_link = NULL;
 
@@ -128,7 +129,7 @@ int altera_jtag_hw_mem_read(uint32_t addr, uint8_t *data, int length)
             size = MAX_TX_SIZE;
 
         // Round up to nearest 4 byte multiple
-        size = (size + 3) & ~3;
+        //size = (size + 3) & ~3;
 
         // Build packet header
         p = buffer;
