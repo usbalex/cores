@@ -30,6 +30,10 @@ int altera_jtag_hw_init(int instance_id)
         fprintf(stderr, "Unable to open altera_jtag device: %s, %x, %x.\n", "USB-Blaster", 0, instance_id);
         return -1;
     }
+    else
+    {
+        fprintf(stdout, "Connected to altera_jtag device: %s, %x, %x.\n", "USB-Blaster", 0, instance_id);
+    }
 
     // Flush buffers
     jtagatlantic_flush(jtag_link);
@@ -261,8 +265,8 @@ int altera_jtag_hw_gpio_read(uint8_t *value)
 
 int ftdi_hw_init(int interface)
 {
-//    return altera_jtag_hw_init(interface);
-    return altera_jtag_hw_init(-1);
+    return altera_jtag_hw_init(interface);
+//    return altera_jtag_hw_init(0);
 }
 //int ftdi_hw_init(void)
 //{

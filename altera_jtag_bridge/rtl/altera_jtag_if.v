@@ -67,9 +67,6 @@ module altera_jtag_if
     output                      mem_cyc_o,
     input                       mem_ack_i,
     input                       mem_stall_i
-
-    ,
-    output [7:0] debug_o
 );
 
 //-----------------------------------------------------------------
@@ -190,10 +187,13 @@ begin
     STATE_ADDR2 : if (rx_ready_w) next_state_r  = STATE_ADDR3;
     STATE_ADDR3 :
     begin
-        if (rx_ready_w && mem_we_o) 
-            next_state_r  = STATE_WRITE;
-        else if (rx_ready_w) 
-            next_state_r  = STATE_READ;            
+        if (rx_ready_w)
+        begin
+            if (mem_we_o) 
+                next_state_r  = STATE_WRITE;
+            else
+                next_state_r  = STATE_READ;            
+        end
     end
     //-----------------------------------------
     // STATE_WRITE
@@ -280,15 +280,10 @@ u_jtag
     .readdata(data_rx_w),
     .writedata(data_tx_w),
     .write(wr_w),
-//    .rd_i(rd_w),
+    .read(rd_w),
     .readyfordata(wr_accept_w),
     .dataavailable(rx_ready_w)
-
-    ,
-    .debug(debug_o)
 );
-
-//assign debug_o = {data_rx_w[2:0], data_tx_w[1:0], wr_w, wr_accept_w, rx_ready_w};
 
 //-----------------------------------------------------------------
 // RD/WR to and from async FTDI I/F
