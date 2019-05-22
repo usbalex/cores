@@ -40,12 +40,12 @@ module altera_jtag_fifo (
   wire          rfifo_rd;
   wire          rfifo_wr;
 
-  reg     [7:0] wfifo_wdata;
+  wire    [7:0] wfifo_wdata;
   wire          wfifo_empty;
   wire          wfifo_full;
   wire    [7:0] wfifo_rdata;
   wire          wfifo_rd;
-  reg           wfifo_wr;
+  wire          wfifo_wr;
 
   wire          r_ena;
   wire          t_ena;
@@ -53,15 +53,22 @@ module altera_jtag_fifo (
   reg           t_dav;
   wire          t_pause;
 
+  reg           wfifo_full_del;
+
 
   assign fifo_clear = ~rst_n;
+
+  // jtag_atlantic <-> FIFOs
   assign wfifo_rd = r_ena & ~wfifo_empty;
   assign rfifo_wr = t_ena & ~rfifo_full;
 
+  // interface <-> FIFOs
   assign dataavailable  = ~rfifo_empty;
+  assign readdata       = rfifo_rdata;
   assign readyfordata   = ~wfifo_full;
   assign rfifo_rd       = read;
-  assign readdata       = rfifo_rdata;
+  assign wfifo_wr       = write & ~wfifo_full;
+  assign wfifo_wdata    = writedata;
 
 
   always @(posedge clk or negedge rst_n)
@@ -75,23 +82,6 @@ module altera_jtag_fifo (
         begin
           r_val <= r_ena & ~wfifo_empty;
           t_dav <= ~rfifo_full;
-        end
-    end
-
-  // to jtag chain
-  always @(posedge clk or negedge rst_n)
-    begin
-      if (rst_n == 0)
-        begin
-          wfifo_wr <= 1'b0;
-        end
-      else 
-        begin
-          wfifo_wr <= 1'b0;
-          if (write) begin
-            wfifo_wr    <= ~wfifo_full;
-            wfifo_wdata <= writedata;
-          end
         end
     end
 
