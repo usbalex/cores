@@ -186,7 +186,7 @@ if (ulpi_rst_i)
 else if (utmi_rxactive_o)
     tx_delay_q <= TX_START_DELAY;
 else if (tx_delay_q != {TX_DELAY_W{1'b0}})
-    tx_delay_q <= tx_delay_q - 1;
+    tx_delay_q <= tx_delay_q - {{(TX_DELAY_W-1){1'b0}}, 1'b1};
 
 wire tx_delay_complete_w = (tx_delay_q == {TX_DELAY_W{1'b0}});
 
