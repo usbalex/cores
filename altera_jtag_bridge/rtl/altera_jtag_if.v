@@ -273,16 +273,16 @@ else
 altera_jtag_fifo
 u_jtag
 (
-    .clk(clk_i),
-    .rst_n(~rst_i),
+    .i_clk(clk_i),
+    .i_rst_n(~rst_i),
 
     // Synchronous Interface
-    .readdata(data_rx_w),
-    .writedata(data_tx_w),
-    .write(wr_w),
-    .read(rd_w),
-    .readyfordata(wr_accept_w),
-    .dataavailable(rx_ready_w)
+    .o_readdata(data_rx_w),
+    .i_writedata(data_tx_w),
+    .i_write(wr_w),
+    .i_read(rd_w),
+    .o_readyfordata(wr_accept_w),
+    .o_dataavailable(rx_ready_w)
 );
 
 //-----------------------------------------------------------------

@@ -6,30 +6,30 @@
 
 module altera_jtag_fifo (
   // inputs
-  clk,
-  rst_n,
-  read,
-  write,
-  writedata,
+  i_clk,
+  i_rst_n,
+  i_read,
+  i_write,
+  i_writedata,
   // outputs
-  readdata,
-  dataavailable,
-  readyfordata
+  o_readdata,
+  o_dataavailable,
+  o_readyfordata
 )
   /* synthesis ALTERA_ATTRIBUTE = "SUPPRESS_DA_RULE_INTERNAL=\"R101,C106,D101,D103\"" */ ;
 
-  input         clk;
-  input         rst_n;
-  input         read;
-  input         write;
-  input   [7:0] writedata;
-  output  [7:0] readdata;
-  output        dataavailable;
-  output        readyfordata;
+  input         i_clk;
+  input         i_rst_n;
+  input         i_read;
+  input         i_write;
+  input   [7:0] i_writedata;
+  output  [7:0] o_readdata;
+  output        o_dataavailable;
+  output        o_readyfordata;
 
-  wire    [7:0] readdata;
-  wire          dataavailable;
-  wire          readyfordata;
+  wire    [7:0] o_readdata;
+  wire          o_dataavailable;
+  wire          o_readyfordata;
 
   wire          fifo_clear;
 
@@ -56,24 +56,24 @@ module altera_jtag_fifo (
   reg           wfifo_full_del;
 
 
-  assign fifo_clear = ~rst_n;
+  assign fifo_clear = ~i_rst_n;
 
   // jtag_atlantic <-> FIFOs
   assign wfifo_rd = r_ena & ~wfifo_empty;
   assign rfifo_wr = t_ena & ~rfifo_full;
 
   // interface <-> FIFOs
-  assign dataavailable  = ~rfifo_empty;
-  assign readdata       = rfifo_rdata;
-  assign readyfordata   = ~wfifo_full;
-  assign rfifo_rd       = read;
-  assign wfifo_wr       = write & ~wfifo_full;
-  assign wfifo_wdata    = writedata;
+  assign o_dataavailable  = ~rfifo_empty;
+  assign o_readdata       = rfifo_rdata;
+  assign o_readyfordata   = ~wfifo_full;
+  assign rfifo_rd       = i_read;
+  assign wfifo_wr       = i_write & ~wfifo_full;
+  assign wfifo_wdata    = i_writedata;
 
 
-  always @(posedge clk or negedge rst_n)
+  always @(posedge i_clk or negedge i_rst_n)
     begin
-      if (rst_n == 0)
+      if (i_rst_n == 0)
         begin
           r_val <= 1'b0;
           t_dav <= 1'b1;
@@ -89,7 +89,7 @@ module altera_jtag_fifo (
   // module inputs -> FIFO -> jtag chain
   scfifo the_wfifo (
     .aclr  (fifo_clear),
-    .clock (clk),
+    .clock (i_clk),
     .data  (wfifo_wdata),
     .empty (wfifo_empty),
     .full  (wfifo_full),
@@ -111,7 +111,7 @@ module altera_jtag_fifo (
   // jtag chain -> FIFO -> module outputs
   scfifo the_rfifo (
     .aclr  (fifo_clear),
-    .clock (clk),
+    .clock (i_clk),
     .data  (rfifo_wdata),
     .empty (rfifo_empty),
     .full  (rfifo_full),
@@ -131,15 +131,15 @@ module altera_jtag_fifo (
   
 
   alt_jtag_atlantic the_alt_jtag_atlantic (
-    .clk (clk),
+    .clk (i_clk),
     .r_dat (wfifo_rdata), // (in)  input data to send out via jtag
     .r_ena (r_ena),       // (out) ready to accept input data
     .r_val (r_val),       // (in)  input data valid (should only be set high, if r_ena is high)
-    .rst_n (rst_n),
+    .rst_n (i_rst_n),
     .t_dat (rfifo_wdata), // (out) output data received via jtag
     .t_dav (t_dav),       // (in)  read fifo ready to accept data? (would be 'r_ena' of rfifo)
-    .t_ena (t_ena),        // (out) output data valid
-    .t_pause (t_pause)    // (out) (currently transmitting via jtag??? -> don't read or write data???)
+    .t_ena (t_ena),       // (out) output data valid
+    .t_pause (t_pause)    // (out) (currently not transmitting via jtag??? -> don't read or write data???)
   );
   defparam the_alt_jtag_atlantic.INSTANCE_ID = 0,
            the_alt_jtag_atlantic.LOG2_RXFIFO_DEPTH = 6,
