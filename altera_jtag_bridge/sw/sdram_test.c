@@ -88,11 +88,12 @@ int main(void)
 
             ftdi_hw_mem_write(addr, (uint8_t*)&req, 4);
             ftdi_hw_mem_read(addr, (uint8_t*)&resp, 4);
+            printf("Read: %x - %x\n", addr, resp);
             sent += 4;
 
             if (req != resp)
             {
-                printf("ERR (RB): %x - %x != %x\n", addr, req, resp);
+                printf("ERR (RB): %x - %x (written) != %x (read)\n", addr, req, resp);
             }
 
             mem[addr/4] = req;
@@ -101,11 +102,12 @@ int main(void)
             addr &= ~3;
 
             ftdi_hw_mem_read(addr, (uint8_t*)&resp, 4);
+            printf("Read: %x - %x\n", addr, resp);
             sent += (4 * 3);
 
             if (mem[addr/4] != resp)
             {
-                printf("ERR (MEM): %x - %x != %x\n", addr, mem[addr/4], resp);
+                printf("ERR (MEM): %x - %x (written) != %x (read)\n", addr, mem[addr/4], resp);
             }
         }
         // BLOCK
