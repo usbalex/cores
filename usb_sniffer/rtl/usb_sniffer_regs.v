@@ -33,6 +33,7 @@ module usb_sniffer_regs
     input [7:0]    addr_i,
     input [31:0]   data_i,
     output [31:0]  data_o,
+    input          cyc_i,
     input          we_i,
     input          stb_i,
     output         ack_o
@@ -41,13 +42,13 @@ module usb_sniffer_regs
 //-----------------------------------------------------------------
 // Retime write data
 //-----------------------------------------------------------------
-reg [31:0] data_q;
-
-always @ (posedge clk_i or posedge rst_i)
-if (rst_i)
-    data_q <= 32'b0;
-else
-    data_q <= data_i;
+//reg [31:0] data_q;
+//
+//always @ (posedge clk_i or posedge rst_i)
+//if (rst_i)
+//    data_q <= 32'b0;
+//else
+//    data_q <= data_i;
 
 //-----------------------------------------------------------------
 // Request Logic
@@ -55,22 +56,22 @@ else
 wire read_en_w;
 wire write_en_w;
 
-assign read_en_w  = stb_i & ~we_i & ~ack_o;
-assign write_en_w = stb_i &  we_i & ~ack_o;
+assign read_en_w  = cyc_i & stb_i & ~we_i & ~ack_o;
+assign write_en_w = cyc_i & stb_i &  we_i & ~ack_o;
 
 
 //-----------------------------------------------------------------
 // Register usb_buffer_cfg
 //-----------------------------------------------------------------
-reg usb_buffer_cfg_wr_q;
-
-always @ (posedge clk_i or posedge rst_i)
-if (rst_i)
-    usb_buffer_cfg_wr_q <= 1'b0;
-else if (write_en_w && (addr_i == `USB_BUFFER_CFG))
-    usb_buffer_cfg_wr_q <= 1'b1;
-else
-    usb_buffer_cfg_wr_q <= 1'b0;
+//reg usb_buffer_cfg_wr_q;
+//
+//always @ (posedge clk_i or posedge rst_i)
+//if (rst_i)
+//    usb_buffer_cfg_wr_q <= 1'b0;
+//else if (write_en_w && (addr_i == `USB_BUFFER_CFG))
+//    usb_buffer_cfg_wr_q <= 1'b1;
+//else
+//    usb_buffer_cfg_wr_q <= 1'b0;
 
 // usb_buffer_cfg_dev [internal]
 reg [6:0]  usb_buffer_cfg_dev_q;
@@ -195,15 +196,15 @@ assign usb_buffer_cfg_enabled_o = usb_buffer_cfg_enabled_q;
 //-----------------------------------------------------------------
 // Register usb_buffer_base
 //-----------------------------------------------------------------
-reg usb_buffer_base_wr_q;
-
-always @ (posedge clk_i or posedge rst_i)
-if (rst_i)
-    usb_buffer_base_wr_q <= 1'b0;
-else if (write_en_w && (addr_i == `USB_BUFFER_BASE))
-    usb_buffer_base_wr_q <= 1'b1;
-else
-    usb_buffer_base_wr_q <= 1'b0;
+//reg usb_buffer_base_wr_q;
+//
+//always @ (posedge clk_i or posedge rst_i)
+//if (rst_i)
+//    usb_buffer_base_wr_q <= 1'b0;
+//else if (write_en_w && (addr_i == `USB_BUFFER_BASE))
+//    usb_buffer_base_wr_q <= 1'b1;
+//else
+//    usb_buffer_base_wr_q <= 1'b0;
 
 // usb_buffer_base_addr [internal]
 reg [31:0]  usb_buffer_base_addr_q;
@@ -220,15 +221,15 @@ assign usb_buffer_base_addr_o = usb_buffer_base_addr_q;
 //-----------------------------------------------------------------
 // Register usb_buffer_end
 //-----------------------------------------------------------------
-reg usb_buffer_end_wr_q;
-
-always @ (posedge clk_i or posedge rst_i)
-if (rst_i)
-    usb_buffer_end_wr_q <= 1'b0;
-else if (write_en_w && (addr_i == `USB_BUFFER_END))
-    usb_buffer_end_wr_q <= 1'b1;
-else
-    usb_buffer_end_wr_q <= 1'b0;
+//reg usb_buffer_end_wr_q;
+//
+//always @ (posedge clk_i or posedge rst_i)
+//if (rst_i)
+//    usb_buffer_end_wr_q <= 1'b0;
+//else if (write_en_w && (addr_i == `USB_BUFFER_END))
+//    usb_buffer_end_wr_q <= 1'b1;
+//else
+//    usb_buffer_end_wr_q <= 1'b0;
 
 // usb_buffer_end_addr [internal]
 reg [31:0]  usb_buffer_end_addr_q;
@@ -245,15 +246,15 @@ assign usb_buffer_end_addr_o = usb_buffer_end_addr_q;
 //-----------------------------------------------------------------
 // Register usb_buffer_sts
 //-----------------------------------------------------------------
-reg usb_buffer_sts_wr_q;
-
-always @ (posedge clk_i or posedge rst_i)
-if (rst_i)
-    usb_buffer_sts_wr_q <= 1'b0;
-else if (write_en_w && (addr_i == `USB_BUFFER_STS))
-    usb_buffer_sts_wr_q <= 1'b1;
-else
-    usb_buffer_sts_wr_q <= 1'b0;
+//reg usb_buffer_sts_wr_q;
+//
+//always @ (posedge clk_i or posedge rst_i)
+//if (rst_i)
+//    usb_buffer_sts_wr_q <= 1'b0;
+//else if (write_en_w && (addr_i == `USB_BUFFER_STS))
+//    usb_buffer_sts_wr_q <= 1'b1;
+//else
+//    usb_buffer_sts_wr_q <= 1'b0;
 
 
 
@@ -262,29 +263,29 @@ else
 //-----------------------------------------------------------------
 // Register usb_buffer_current
 //-----------------------------------------------------------------
-reg usb_buffer_current_wr_q;
-
-always @ (posedge clk_i or posedge rst_i)
-if (rst_i)
-    usb_buffer_current_wr_q <= 1'b0;
-else if (write_en_w && (addr_i == `USB_BUFFER_CURRENT))
-    usb_buffer_current_wr_q <= 1'b1;
-else
-    usb_buffer_current_wr_q <= 1'b0;
+//reg usb_buffer_current_wr_q;
+//
+//always @ (posedge clk_i or posedge rst_i)
+//if (rst_i)
+//    usb_buffer_current_wr_q <= 1'b0;
+//else if (write_en_w && (addr_i == `USB_BUFFER_CURRENT))
+//    usb_buffer_current_wr_q <= 1'b1;
+//else
+//    usb_buffer_current_wr_q <= 1'b0;
 
 
 //-----------------------------------------------------------------
 // Register usb_buffer_read
 //-----------------------------------------------------------------
-reg usb_buffer_read_wr_q;
-
-always @ (posedge clk_i or posedge rst_i)
-if (rst_i)
-    usb_buffer_read_wr_q <= 1'b0;
-else if (write_en_w && (addr_i == `USB_BUFFER_READ))
-    usb_buffer_read_wr_q <= 1'b1;
-else
-    usb_buffer_read_wr_q <= 1'b0;
+//reg usb_buffer_read_wr_q;
+//
+//always @ (posedge clk_i or posedge rst_i)
+//if (rst_i)
+//    usb_buffer_read_wr_q <= 1'b0;
+//else if (write_en_w && (addr_i == `USB_BUFFER_READ))
+//    usb_buffer_read_wr_q <= 1'b1;
+//else
+//    usb_buffer_read_wr_q <= 1'b0;
 
 // usb_buffer_read_addr [internal]
 reg [31:0]  usb_buffer_read_addr_q;
@@ -377,7 +378,7 @@ else if (write_en_w || read_en_w)
 else
     ack_q <= 1'b0;
 
-assign ack_o = ack_q;
+assign ack_o = ack_q & cyc_i;
 
 
 

@@ -11,6 +11,7 @@ module usb_sniffer
     input  [7:0]    addr_i,
     input  [31:0]   data_i,
     output [31:0]   data_o,
+    input           cyc_i,
     input           we_i,
     input           stb_i,
     output          ack_o,
@@ -31,6 +32,7 @@ module usb_sniffer
     output [31:0]   mem_addr_o,
     output [3:0]    mem_sel_o,
     output [31:0]   mem_data_o,
+    output          mem_cyc_o,
     output          mem_stb_o,
     output          mem_we_o,
     input           mem_stall_i,
@@ -168,6 +170,7 @@ u_regs
     .addr_i(addr_i),
     .data_i(data_i),
     .data_o(data_o),
+    .cyc_i(cyc_i),
     .we_i(we_i),
     .stb_i(stb_i),
     .ack_o(ack_o)
@@ -281,7 +284,7 @@ end
 
 wire sample_byte_w  = utmi_rxvalid_i && utmi_rxactive_i;
 wire start_packet_w = !active_q && sample_byte_w && cfg_enabled_w;
-wire end_packet_w   = active_q  && !utmi_rxactive_i;
+//wire end_packet_w   = active_q  && !utmi_rxactive_i;
 
 //-----------------------------------------------------------------
 // State machine
@@ -761,6 +764,7 @@ assign sts_triggered_w = write_detect_q;
 assign mem_addr_o = write_addr_q;
 assign mem_sel_o  = 4'b1111;
 assign mem_data_o = buffer_q;
+assign mem_cyc_o  = buffer_wr_q | mem_stalled_q;
 assign mem_stb_o  = buffer_wr_q;
 assign mem_we_o   = 1'b1;
 
@@ -774,7 +778,7 @@ if (rst_i)
     mem_stalled_q <= 1'b0;
 else if (cfg_enable_reset_w)
     mem_stalled_q <= 1'b0;
-else if (mem_stb_o && mem_stall_i && buffer_wr_r)
+else if (mem_cyc_o && mem_stall_i && buffer_wr_r)
     mem_stalled_q <= 1'b1;
 
 assign sts_mem_stall_w = mem_stalled_q;
