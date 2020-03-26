@@ -9,9 +9,11 @@
 //-----------------------------------------------------------------
 //#define DEFAULT_FTDI_IFACE  1
 #define DEFAULT_FTDI_IFACE  0
-#define BLOCK_SIZE  2048
+//#define BLOCK_SIZE  1024
+#define BLOCK_SIZE  8192
 
-#define MEM_SIZE    ((32 * 1024) / 4)
+//#define MEM_SIZE    ((1 * 1024) / 4)
+#define MEM_SIZE    ((16*1024) / 4)
 
 static uint32_t mem[MEM_SIZE];
 
@@ -27,8 +29,8 @@ int main(void)
     uint8_t gpio;
     struct timeval t1, t2;
     double elapsedTime;    
-    int res;
     int i;
+    int xfer;
 
     if (ftdi_hw_init(DEFAULT_FTDI_IFACE) != 0)
     {
@@ -58,7 +60,12 @@ int main(void)
 
     addr = 0x00000000;
     req = 0x12345678;
-    ftdi_hw_mem_read_word(addr, &resp);
+    resp = 0xdeadbeef;
+    xfer = ftdi_hw_mem_read_word(addr, &resp);
+    if (xfer != 4)
+    {
+        printf("WARN: Read of %d != %d (expected) bytes", xfer, 4);
+    }
 
     if (req != resp)
     {
@@ -69,7 +76,11 @@ int main(void)
         mem[i] = 0;
 
     printf("Erasing memory\n");
-    ftdi_hw_mem_write(0, (uint8_t*)mem, MEM_SIZE);
+    xfer = ftdi_hw_mem_write(0, (uint8_t*)mem, MEM_SIZE);
+    if (xfer != MEM_SIZE)
+    {
+        printf("WARN: Write of %d != %d (expected) bytes", xfer, MEM_SIZE);
+    }
     printf("Erasing memory - done\n");
 
     // Start timer
@@ -86,9 +97,17 @@ int main(void)
 
             req = rand();
 
-            ftdi_hw_mem_write(addr, (uint8_t*)&req, 4);
-            ftdi_hw_mem_read(addr, (uint8_t*)&resp, 4);
-            printf("Read: %x - %x\n", addr, resp);
+            xfer = ftdi_hw_mem_write(addr, (uint8_t*)&req, 4);
+            if (xfer != 4)
+            {
+                printf("WARN: Write of %d != %d (expected) bytes", xfer, 4);
+            }
+            xfer = ftdi_hw_mem_read(addr, (uint8_t*)&resp, 4);
+            if (xfer != 4)
+            {
+                printf("WARN: Read of %d != %d (expected) bytes", xfer, 4);
+            }
+            //printf("Read: %x - %x\n", addr, resp);
             sent += 4;
 
             if (req != resp)
@@ -102,7 +121,7 @@ int main(void)
             addr &= ~3;
 
             ftdi_hw_mem_read(addr, (uint8_t*)&resp, 4);
-            printf("Read: %x - %x\n", addr, resp);
+            //printf("Read: %x - %x\n", addr, resp);
             sent += (4 * 3);
 
             if (mem[addr/4] != resp)

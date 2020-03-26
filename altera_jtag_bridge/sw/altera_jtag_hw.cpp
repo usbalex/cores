@@ -7,15 +7,19 @@
 //-----------------------------------------------------------------
 // Defines:
 //-----------------------------------------------------------------
-#define CMD_NOP        0x0
-#define CMD_WR         0x1
-#define CMD_RD         0x2
-#define CMD_GP_WR      0x3
-#define CMD_GP_RD      0x4
+#define CMD_NOP         0x0
+#define CMD_WR          0x1
+#define CMD_RD          0x2
+#define CMD_GP_WR       0x3
+#define CMD_GP_RD       0x4
 
-#define HDR_SIZE       6
-//#define MAX_TX_SIZE    1<<6 - HDR_SIZE
-#define MAX_TX_SIZE    2048 - HDR_SIZE
+//#define DEBUG           1
+
+#define HDR_SIZE        6
+#define FIFO_DEPTH      6
+//#define MAX_TX_SIZE     (1<<FIFO_DEPTH) - HDR_SIZE
+//#define MAX_TX_SIZE     16*(1<<FIFO_DEPTH) - HDR_SIZE
+#define MAX_TX_SIZE     4*1024
 
 struct JTAGATLANTIC *jtag_link = NULL;
 
@@ -90,8 +94,6 @@ int altera_jtag_hw_mem_write(uint32_t addr, uint8_t *data, int length)
 
         // Write request + data to FTDI device
         res = jtagatlantic_write(jtag_link, (const char*)buffer, (size + HDR_SIZE));
-        // Flush buffers
-        jtagatlantic_flush(jtag_link);
         if (res != (size + HDR_SIZE))
         {
             fprintf(stderr, "altera_jtag_hw_mem_write: Failed to send\n");
@@ -101,6 +103,22 @@ int altera_jtag_hw_mem_write(uint32_t addr, uint8_t *data, int length)
         sent += size;
         addr += size;
     }
+    // Flush buffers
+    jtagatlantic_flush(jtag_link);
+#ifdef DEBUG
+    printf("__wrote %d bytes to addr 0x%08x:\n", sent, (addr - length));
+    i = 0;
+    data -= sent;
+    printf("__  ");
+    while (i < length)
+    {
+        printf("%02x", data[i++]);
+        if (i % 4 == 0)
+            printf("\n__  ");
+    }
+    printf("\n");
+    data -= sent;
+#endif // DEBUG
 
     return sent;
 }
@@ -152,7 +170,7 @@ int altera_jtag_hw_mem_read(uint32_t addr, uint8_t *data, int length)
         }
 
         remain = size;
-        do
+        while (remain > 0)
         {
             res = jtagatlantic_read(jtag_link, (char*)data, remain);
             if (res < 0)
@@ -164,11 +182,24 @@ int altera_jtag_hw_mem_read(uint32_t addr, uint8_t *data, int length)
             remain -= res;
             data += res;
         }
-        while (remain > 0);
 
         received += size;
         addr     += size;
     }
+#ifdef DEBUG
+    printf("__read %d bytes from addr 0x%08x:\n", received, (addr - length));
+    i = 0;
+    data -= received;
+    printf("__  ");
+    while (i < length)
+    {
+        printf("%02x", data[i++]);
+        if (i % 4 == 0)
+            printf("\n__  ");
+    }
+    printf("\n");
+    data = data - received;
+#endif // DEBUG
 
     return received;
 }
@@ -179,10 +210,10 @@ int altera_jtag_hw_mem_write_word(uint32_t addr, uint32_t data)
 {
     uint8_t buffer[4];
 
-    buffer[3] = (data >> 24);
-    buffer[2] = (data >> 16);
-    buffer[1] = (data >> 8);
-    buffer[0] = (data >> 0);
+    buffer[3] = (data >> 24) & 0xff;
+    buffer[2] = (data >> 16) & 0xff;
+    buffer[1] = (data >>  8) & 0xff;
+    buffer[0] = (data >>  0) & 0xff;
 
     return altera_jtag_hw_mem_write(addr, buffer, 4);
 }
@@ -201,10 +232,16 @@ int altera_jtag_hw_mem_read_word(uint32_t addr, uint32_t *data)
     int res = altera_jtag_hw_mem_read(addr, buffer, 4);
     if (res > 0)
     {
-        (*data) = ((uint32_t)buffer[3]) << 24;
-        (*data)|= ((uint32_t)buffer[2]) << 16;
-        (*data)|= ((uint32_t)buffer[1]) << 8;
-        (*data)|= ((uint32_t)buffer[0]) << 0;
+        *data   = ((uint32_t)buffer[3]) << 24
+                | ((uint32_t)buffer[2]) << 16
+                | ((uint32_t)buffer[1]) <<  8
+                | ((uint32_t)buffer[0]) <<  0;
+    }
+    else
+    {
+        fprintf(stderr, "altera_jtag_hw_mem_read_word: Received wrong length of"
+                "data: %d (expected 4)\n", res);
+        *data = 0;
     }
     return res;
 }
