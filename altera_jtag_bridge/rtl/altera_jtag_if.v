@@ -211,7 +211,7 @@ begin
     STATE_READ :
     begin
         // Data ready
-        if (mem_ack_i)
+        if (mem_cyc_o && mem_ack_i)
             next_state_r  = STATE_DATA0;
     end
     //-----------------------------------------
